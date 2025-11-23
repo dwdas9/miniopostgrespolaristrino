@@ -1,0 +1,52 @@
+services:
+  spark-notebook:
+    image: jupyter/pyspark-notebook:latest
+    container_name: spark-notebook
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_S3_ENDPOINT: http://minio:9000
+      PYSPARK_SUBMIT_ARGS: >
+        --packages org.apache.iceberg:iceberg-spark-runtime-3.4_2.13:1.5.2,org.apache.hadoop:hadoop-aws:3.3.6
+        --conf spark.sql.catalog.polaris=org.apache.iceberg.spark.SparkCatalog
+        --conf spark.sql.catalog.polaris.catalog-impl=org.apache.iceberg.rest.RESTCatalog
+        --conf spark.sql.catalog.polaris.uri=http://polaris:8181
+        --conf spark.sql.catalog.polaris.warehouse=s3a://warehouse/
+        --conf spark.sql.catalog.polaris.auth-token=
+        --conf spark.sql.catalog.polaris.scope=catalog,metastore,warehouse
+        --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+        --conf spark.sql.defaultCatalog=polaris
+        --conf spark.hadoop.fs.s3a.endpoint=http://minio:9000
+        --conf spark.hadoop.fs.s3a.access.key=minioadmin
+        --conf spark.hadoop.fs.s3a.secret.key=minioadmin
+        --conf spark.hadoop.fs.s3a.path.style.access=true
+        --conf spark.hadoop.fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
+        --conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+        --conf spark.hadoop.fs.s3a.connection.ssl.enabled=false
+        --conf spark.jars.ivy=/tmp/.ivy2
+        pyspark-shell
+    ports:
+      - "8888:8888"
+      - "4040:4040"
+    volumes:
+      - ./workspace/notebooks:/workspace/notebooks
+      - ./workspace/data:/workspace/data
+      - warehouse_storage:/warehouse
+    command: >
+      bash -c "pip install duckdb &&
+               jupyter notebook --ip=0.0.0.0 --allow-root --no-browser"
+    networks:
+      - dasnet
+    restart: unless-stopped
+
+networks:
+  dasnet:
+    driver: bridge
+    name: dasnet
+    external: true
+
+volumes:
+  warehouse_storage:
+    name: warehouse_storage
+    external: true

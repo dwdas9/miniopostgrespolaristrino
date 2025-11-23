@@ -1,0 +1,113 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+.jupyter/
+
+# Docker volumes and data
+# Local data directories
+workspace/data/*
+workspace/notebooks/.ipynb_checkpoints/
+!workspace/data/.gitkeep
+
+# MinIO data
+minio_data/
+!minio_data/.gitkeep
+
+# PostgreSQL data
+postgres_data/
+!postgres_data/.gitkeep
+
+# Docker
+.dockerignore
+
+# Polaris data
+polaris_data/
+!polaris_data/.gitkeep
+
+# Warehouse storage
+warehouse_storage/
+!warehouse_storage/.gitkeep
+
+# Environment files
+.env
+.env.local
+*.env.local
+
+# Logs
+*.log
+logs/
+!logs/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Parquet and data files (in case any are created locally)
+*.parquet
+*.snappy
+
+# Maven
+target/
+.m2/
+
+# Node (if needed)
+node_modules/
+npm-debug.log
+
+# Pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Misc
+.coverage
+.pytest_cache/
+.mypy_cache/
+.hypothesis/

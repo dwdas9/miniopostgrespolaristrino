@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: warehouse-postgres
+    environment:
+      POSTGRES_DB: polaris_db
+      POSTGRES_USER: polaris
+      POSTGRES_PASSWORD: polaris_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U polaris -d polaris_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dasnet
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: warehouse-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dasnet
+    restart: unless-stopped
+
+  polaris:
+    image: apache/polaris:latest
+    container_name: warehouse-polaris
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      POLARIS_ADMIN_USERNAME: admin
+      POLARIS_ADMIN_PASSWORD: polaris
+      DATABASE_URL: jdbc:postgresql://postgres:5432/polaris_db?user=polaris&password=polaris_password
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_S3_ENDPOINT: http://minio:9000
+      AWS_REGION: us-east-1
+    ports:
+      - "8181:8181"
+    networks:
+      - dasnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8181/api/v1/catalogs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  dasnet:
+    driver: bridge
+    name: dasnet
+    external: true
+
+volumes:
+  minio_data:
+    driver: local
+  postgres_data:
+    driver: local
