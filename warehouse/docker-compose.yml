@@ -1,11 +1,13 @@
+# Core infrastructure services: PostgreSQL (metadata), MinIO (storage), Polaris (catalog)
 services:
+  # PostgreSQL database - stores Polaris catalog metadata
   postgres:
     image: postgres:15-alpine
     container_name: warehouse-postgres
     environment:
-      POSTGRES_DB: polaris_db
-      POSTGRES_USER: polaris
-      POSTGRES_PASSWORD: polaris_password
+      POSTGRES_DB: polaris_db              
+      POSTGRES_USER: polaris               
+      POSTGRES_PASSWORD: polaris_password  
     ports:
       - "5432:5432"
     volumes:
@@ -19,12 +21,13 @@ services:
       - dasnet
     restart: unless-stopped
 
+  # MinIO - S3-compatible object storage for Iceberg data files
   minio:
     image: minio/minio:latest
     container_name: warehouse-minio
     environment:
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin
+      MINIO_ROOT_USER: minioadmin  # Changed from MINIO_ACCESS_KEY
+      MINIO_ROOT_PASSWORD: minioadmin  # Changed from MINIO_SECRET_KEY
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -40,6 +43,7 @@ services:
       - dasnet
     restart: unless-stopped
 
+  # Apache Polaris - REST catalog for Iceberg tables
   polaris:
     image: apache/polaris:latest
     container_name: warehouse-polaris
@@ -49,23 +53,23 @@ services:
       minio:
         condition: service_healthy
     environment:
-      POLARIS_ADMIN_USERNAME: admin
-      POLARIS_ADMIN_PASSWORD: polaris
-      DATABASE_URL: jdbc:postgresql://postgres:5432/polaris_db?user=polaris&password=polaris_password
+      # Database configuration for PostgreSQL
+      QUARKUS_DATASOURCE_JDBC_URL: "jdbc:postgresql://postgres:5432/polaris_db"
+      QUARKUS_DATASOURCE_USERNAME: "polaris"
+      QUARKUS_DATASOURCE_PASSWORD: "polaris_password"
+      QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION: "update"
+      
+      # S3/MinIO configuration - use static credentials, no STS
       AWS_ACCESS_KEY_ID: minioadmin
       AWS_SECRET_ACCESS_KEY: minioadmin
-      AWS_S3_ENDPOINT: http://minio:9000
       AWS_REGION: us-east-1
+      AWS_ENDPOINT_URL_S3: http://minio:9000
+      
     ports:
       - "8181:8181"
     networks:
       - dasnet
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8181/api/v1/catalogs"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 networks:
   dasnet:
@@ -78,3 +82,5 @@ volumes:
     driver: local
   postgres_data:
     driver: local
+
+    
