@@ -1,5 +1,11 @@
 # Building Your Own Data Warehouse on Your Laptop
 
+**Note:** This setup works on both Windows and macOS. However, every time the Polaris container restarts, a new clientID and clientSecret are generated. You'll need to:
+1. Get the new credentials from Polaris logs (`docker logs warehouse-polaris 2>&1 | grep "credentials:"`)
+2. Update the setup-polaris script and run it
+3. Update the credentials in your Jupyter notebook
+
+
 ## Why Even Bother?
 
 Most people will tell you to just use Snowflake or Databricks and call it a day. And honestly, for production workloads at scale, they're probably right. But here's the thing - if you want to actually understand how modern data warehouses work, or if you need something running completely on-prem with zero cloud dependencies, building your own setup teaches you a lot.
@@ -12,7 +18,7 @@ We're putting together a proper lakehouse stack - Spark for processing and queri
 
 The cool part? This isn't some toy setup. The architecture is the same as what companies run in production. Just smaller.
 
-## Why This Stack and Not the Old Stuff?
+## Haddop Hive were all good. Why this new stack?
 
 ### Why Not Hadoop?
 
@@ -217,11 +223,7 @@ Could you use a lighter query engine? Maybe Trino for just queries, but then you
 
 **Orchestration (Airflow)**: Scheduling and workflows are important for production, but not for the warehouse itself to function. You can run Spark jobs manually or with cron.
 
-**BI Tools (Superset, Metabase)**: Visualization is downstream of the warehouse. You can query with Spark SQL directly. BI tools connect to your warehouse, they're not part of it.
-
-**Monitoring (Prometheus, Grafana)**: Critical for production, but the warehouse works without it. You're just flying blind operationally.
-
-**Security Layers (Ranger, Knox)**: Important for enterprise, but adds complexity. Polaris has basic access control built in, which is enough for most cases.
+We are also excluding, BI Tools, Monitoring, and Security Layers.
 
 ### Why This is Actually Sufficient
 
