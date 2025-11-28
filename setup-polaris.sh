@@ -6,8 +6,8 @@
 # Run: docker logs warehouse-polaris 2>&1 | grep "credentials:"
 # Then update these values:
 # ================================================
-CLIENT_ID="a78cf5b1274db27a"
-CLIENT_SECRET="aac273037efbfd31ae9b285c7eb206a1"
+CLIENT_ID="30d861989a2b1605"
+CLIENT_SECRET="c93e64ae4132ecb1a33aba14e8506a6d"
 
 echo "Setting up Polaris catalog..."
 echo ""

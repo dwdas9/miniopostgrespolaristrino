@@ -5,6 +5,29 @@
 2. Update the setup-polaris script and run it
 3. Update the credentials in your Jupyter notebook
 
+## What Happens When You Shutdown?
+
+This trips people up, so let's be clear about what persists and what doesn't:
+
+**Survives restart (stored in Docker volumes):**
+- Your Parquet data files in MinIO
+- Iceberg metadata files in MinIO
+- PostgreSQL database (catalog data)
+
+**Lost on Polaris restart:**
+- Polaris OAuth credentials (clientID/clientSecret) - regenerated every time
+- Your catalog configuration (`my_catalog`) - needs to be recreated via setup script
+
+**What this means practically:**
+
+When you shutdown your machine and start Docker again, your raw data is still there in MinIO. But Polaris forgets everything - it generates new credentials and starts with an empty catalog. You need to:
+1. Get new credentials from Polaris logs
+2. Run the setup script to recreate `my_catalog`
+3. Update notebook with new credentials
+
+Your tables and namespaces will be gone from the catalog, but the underlying Parquet files are still in MinIO. For a dev/learning setup, just recreate your tables. For important data, you could re-register existing Iceberg tables by pointing to their metadata files in MinIO.
+
+This is a limitation of how Polaris handles bootstrap credentials - in production you'd use proper persistent credentials, but for local development it's a minor inconvenience.
 
 ## Why Even Bother?
 
